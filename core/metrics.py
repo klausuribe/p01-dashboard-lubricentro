@@ -1,5 +1,24 @@
 import pandas as pd
 
+_DETAIL_COLUMNS = ["Fecha", "Vehículo", "Servicio", "Técnico", "Monto", "Costo", "Margen"]
+
+
+def build_detail_table(df: pd.DataFrame) -> pd.DataFrame:
+    if len(df) == 0:
+        return pd.DataFrame(columns=_DETAIL_COLUMNS)
+
+    return pd.DataFrame(
+        {
+            "Fecha": df["fecha"].values,
+            "Vehículo": df["vehiculo"].values,
+            "Servicio": df["servicio"].values,
+            "Técnico": df["tecnico"].values,
+            "Monto": df["monto"].astype(float).values,
+            "Costo": df["costo"].astype(float).values,
+            "Margen": (df["monto"].astype(float) - df["costo"].astype(float)).values,
+        }
+    )
+
 
 def calculate_kpis(df: pd.DataFrame) -> dict:
     ingresos = float(df["monto"].sum()) if "monto" in df.columns else 0.0

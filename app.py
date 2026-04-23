@@ -2,7 +2,7 @@ import streamlit as st
 
 from config import CATEGORIAS
 from core.filters import apply_filters
-from core.metrics import calculate_kpis
+from core.metrics import build_detail_table, calculate_kpis
 from data.loader import load_data
 from ui.charts import (
     render_ingreso_vs_costo,
@@ -31,7 +31,34 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-df = load_data(XLSX_PATH)
+with st.sidebar:
+    st.markdown("### Fuente de datos")
+    uploaded_file = st.file_uploader(
+        "Subir Excel (.xlsx)",
+        type=["xlsx"],
+        help="Opcional. Si no subís un archivo, se usa el dataset de ejemplo.",
+    )
+
+source = uploaded_file if uploaded_file is not None else XLSX_PATH
+
+try:
+    df = load_data(source)
+except ValueError as e:
+    st.error(f"⚠️ {e}")
+    st.stop()
+except Exception:
+    st.error(
+        "⚠️ No se pudo leer el archivo. "
+        "Asegurate de que sea un Excel (.xlsx) válido con una hoja 'Datos'."
+    )
+    st.stop()
+
+if len(df) == 0:
+    st.info(
+        "El archivo no contiene registros. "
+        "Subí un Excel con datos o usá el dataset de ejemplo."
+    )
+    st.stop()
 
 with st.sidebar:
     st.markdown("### Filtros")
@@ -99,3 +126,25 @@ else:
         )
 
     st.plotly_chart(render_ingreso_vs_costo(df_filtrado), use_container_width=True)
+
+    st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+    st.markdown("### Detalle")
+
+    detalle = build_detail_table(df_filtrado)
+    st.dataframe(
+        detalle,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Fecha": st.column_config.DateColumn("Fecha", format="YYYY-MM-DD"),
+            "Monto": st.column_config.NumberColumn("Monto", format="Bs. %.2f"),
+            "Costo": st.column_config.NumberColumn("Costo", format="Bs. %.2f"),
+            "Margen": st.column_config.NumberColumn("Margen", format="Bs. %.2f"),
+        },
+    )
+    st.download_button(
+        label="Descargar CSV",
+        data=detalle.to_csv(index=False).encode("utf-8-sig"),
+        file_name="detalle_lubricentro.csv",
+        mime="text/csv",
+    )

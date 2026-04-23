@@ -8,7 +8,14 @@ _STYLES = f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600&family=Fira+Sans:wght@400;500;600;700&display=swap');
 
-html, body, [class*="st-"], [class*="css-"] {{
+html, body {{
+    font-family: 'Fira Sans', system-ui, sans-serif;
+}}
+
+h1, h2, h3, h4, h5, h6,
+.stMarkdown, .stMarkdown p, .stMarkdown span, .stMarkdown li,
+[data-testid="stSidebar"] .stMarkdown,
+[data-testid="stWidgetLabel"] label {{
     font-family: 'Fira Sans', system-ui, sans-serif;
 }}
 
